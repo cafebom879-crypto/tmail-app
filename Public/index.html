@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TMail — Email Sementara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #12141c;
+    --ink-soft: #1a1d29;
+    --paper: #f6f3ec;
+    --paper-soft: #ede8dc;
+    --signal: #ff6b4a;
+    --signal-dim: #c94f34;
+    --teleprint: #5fd4a0;
+    --slate: #8b90a0;
+    --line-dark: #2a2d3a;
+    --line-light: #ddd6c7;
+    --bg: var(--paper);
+    --bg-soft: var(--paper-soft);
+    --surface: #ffffff;
+    --text: var(--ink);
+    --text-muted: #6b6f7d;
+    --line: var(--line-light);
+  }
+  [data-theme="dark"] {
+    --bg: var(--ink);
+    --bg-soft: var(--ink-soft);
+    --surface: #191c27;
+    --text: #efece3;
+    --text-muted: var(--slate);
+    --line: var(--line-dark);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    transition: background .25s ease, color .25s ease;
+    min-height: 100vh;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-soft);
+  }
+  .brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand .stamp {
+    width: 22px; height: 22px;
+    border: 2px dashed var(--signal);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--signal);
+  }
+  .tabs { display: flex; gap: 6px; }
+  .tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .tab.active {
+    color: var(--signal);
+    border-color: var(--signal);
+    background: color-mix(in srgb, var(--signal) 10%, transparent);
+  }
+  .theme-toggle {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  main {
+    max-width: 640px;
+    margin: 40px auto;
+    padding: 0 20px 60px;
+  }
+
+  .hero {
+    margin-bottom: 24px;
+  }
+  .hero .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--signal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    margin: 6px 0 0;
+    letter-spacing: -0.02em;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--signal) 0 10px, transparent 10px 18px);
+    opacity: .5;
+  }
+
+  .addr-row {
+    display: flex;
+    gap: 10px;
+  }
+  .addr-field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg-soft);
+    padding: 0 4px 0 14px;
+  }
+  .addr-field input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    padding: 12px 8px;
+    outline: none;
+  }
+  .domain-select {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 6px;
+    cursor: pointer;
+  }
+  .btn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    padding: 12px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    background: var(--surface);
+    color: var(--text);
+  }
+  .btn-primary {
+    background: var(--signal);
+    border-color: var(--signal);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--signal-dim); }
+  .btn:hover { background: var(--bg-soft); }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .uptime-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teleprint);
+    display: inline-block;
+    margin-right: 6px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--teleprint) 20%, transparent);
+  }
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  .copy-btn:hover { border-color: var(--signal); color: var(--signal); }
+
+  .inbox-card { padding: 0; }
+  .inbox-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--ink);
+    color: #efece3;
+  }
+  [data-theme="dark"] .inbox-header { background: #0d0f16; }
+  .inbox-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .count-badge {
+    background: var(--signal);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .refresh-btn {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: #efece3;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .refresh-btn.spinning svg { animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .inbox-body {
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .empty-state svg { color: var(--text-muted); opacity: .5; }
+  .empty-state p {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  .msg-list { width: 100%; }
+  .msg-item {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    text-align: left;
+  }
+  .msg-item:last-child { border-bottom: none; }
+  .msg-item:hover { background: var(--bg-soft); }
+  .msg-from {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--signal);
+  }
+  .msg-subject { font-weight: 600; font-size: 14px; margin: 3px 0; }
+  .msg-preview { font-size: 13px; color: var(--text-muted); }
+  .msg-time { font-size: 11px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-top: 4px; }
+  .msg-body {
+    display: none;
+    padding: 14px 18px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-soft);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .msg-body.open { display: block; }
+
+  .dev-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 24px;
+  }
+  .dev-note button {
+    background: none;
+    border: none;
+    color: var(--signal);
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+  }
+</style>
+</head>
+<body data-theme="light">
+  <div class="topbar">
+    <div class="brand"><span class="stamp">✉</span> TMail</div>
+    <div class="tabs">
+      <button class="tab active">TMail</button>
+      <button class="tab">My Domains</button>
+      <button class="tab">2AF</button>
+      <button class="tab">Check UID</button>
+    </div>
+    <button class="theme-toggle" id="themeToggle" title="Ganti tema">🌙</button>
+  </div>
+
+  <main>
+    <div class="hero">
+      <div class="eyebrow">Postmark ///  001</div>
+      <h1>Kotak masuk sekali pakai</h1>
+    </div>
+
+    <div class="card">
+      <div class="addr-row">
+        <div class="addr-field">
+          <input id="emailInput" readonly value="memuat..." />
+          <select id="domainSelect" class="domain-select"></select>
+        </div>
+        <button class="btn btn-primary" id="acakUser">Acak user</button>
+        <button class="btn" id="acakEmail">Acak email</button>
+      </div>
+      <div class="meta-row">
+        <span><span class="uptime-dot"></span>Uptime: <strong id="uptime">baru saja</strong></span>
+      </div>
+      <button class="copy-btn" id="copyBtn">📋 Copy email</button>
+    </div>
+
+    <div class="card inbox-card">
+      <div class="inbox-header">
+        <div class="inbox-title">Inbox <span class="count-badge" id="msgCount">0</span></div>
+        <button class="refresh-btn" id="refreshBtn" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v6h-6"/></svg>
+        </button>
+      </div>
+      <div class="inbox-body" id="inboxBody">
+        <div class="empty-state">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          <p>Waiting for new emails…</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dev-note">
+      Ini demo lokal — belum ada domain sungguhan yang menerima email nyata.
+      <button id="simulateBtn">Kirim email uji ▸</button>
+    </div>
+  </main>
+
+<script>
+const state = { address: null, domains: [], pollTimer: null };
+
+const emailInput = document.getElementById('emailInput');
+const domainSelect = document.getElementById('domainSelect');
+const uptimeEl = document.getElementById('uptime');
+const inboxBody = document.getElementById('inboxBody');
+const msgCount = document.getElementById('msgCount');
+const refreshBtn = document.getElementById('refreshBtn');
+const themeToggle = document.getElementById('themeToggle');
+
+function fmtUptime(createdAt) {
+  const diff = Date.now() - createdAt;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'baru saja';
+  if (mins < 60) return `${mins} menit lalu`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs} jam lalu`;
+}
+
+async function loadDomains() {
+  const res = await fetch('/api/domains');
+  const data = await res.json();
+  state.domains = data.domains;
+  domainSelect.innerHTML = state.domains.map(d => `<option value="${d}">@${d}</option>`).join('');
+}
+
+async function setAddress(address) {
+  state.address = address;
+  const [user, domain] = address.split('@');
+  emailInput.value = address;
+  domainSelect.value = domain;
+  await refreshInbox(true);
+}
+
+async function generateEmail() {
+  const res = await fetch('/api/generate/email');
+  const data = await res.json();
+  await setAddress(data.address);
+}
+
+async function generateUser() {
+  const domain = domainSelect.value || state.domains[0];
+  const res = await fetch(`/api/generate/user?domain=${encodeURIComponent(domain)}`);
+  const data = await res.json();
+  await setAddress(data.address);
+}
+
+async function refreshInbox(silent) {
+  if (!state.address) return;
+  if (!silent) refreshBtn.classList.add('spinning');
+  try {
+    const res = await fetch(`/api/inbox/${encodeURIComponent(state.address)}`);
+    const data = await res.json();
+    uptimeEl.textContent = fmtUptime(data.createdAt);
+    msgCount.textContent = data.messages.length;
+    renderMessages(data.messages);
+  } finally {
+    setTimeout(() => refreshBtn.classList.remove('spinning'), 400);
+  }
+}
+
+function renderMessages(messages) {
+  if (!messages.length) {
+    inboxBody.innerHTML = `
+      <div class="empty-state">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        <p>Waiting for new emails…</p>
+      </div>`;
+    return;
+  }
+  inboxBody.style.display = 'block';
+  inboxBody.innerHTML = `<div class="msg-list">${messages.map((m, i) => `
+    <div class="msg-item" data-idx="${i}">
+      <div class="msg-from">${m.from}</div>
+      <div class="msg-subject">${m.subject}</div>
+      <div class="msg-preview">${(m.text || '').slice(0, 60)}${m.text && m.text.length > 60 ? '…' : ''}</div>
+      <div class="msg-time">${new Date(m.receivedAt).toLocaleTimeString('id-ID')}</div>
+    </div>
+    <div class="msg-body" id="body-${i}">${m.text || '(tidak ada isi)'}</div>
+  `).join('')}</div>`;
+
+  inboxBody.querySelectorAll('.msg-item').forEach(el => {
+    el.addEventListener('click', () => {
+      document.getElementById(`body-${el.dataset.idx}`).classList.toggle('open');
+    });
+  });
+}
+
+document.getElementById('acakEmail').addEventListener('click', generateEmail);
+document.getElementById('acakUser').addEventListener('click', generateUser);
+refreshBtn.addEventListener('click', () => refreshInbox(false));
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(emailInput.value);
+  const btn = document.getElementById('copyBtn');
+  const original = btn.textContent;
+  btn.textContent = '✓ Tersalin';
+  setTimeout(() => (btn.textContent = original), 1200);
+});
+
+domainSelect.addEventListener('change', () => {
+  if (!state.address) return;
+  const [user] = state.address.split('@');
+  setAddress(`${user}@${domainSelect.value}`);
+});
+
+themeToggle.addEventListener('click', () => {
+  const html = document.body;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeToggle.textContent = isDark ? '🌙' : '☀️';
+});
+
+document.getElementById('simulateBtn').addEventListener('click', async () => {
+  if (!state.address) return;
+  await fetch('/api/simulate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to: state.address }),
+  });
+  refreshInbox(false);
+});
+
+(async function init() {
+  await loadDomains();
+  await generateEmail();
+  state.pollTimer = setInterval(() => refreshInbox(true), 5000);
+})();
+</script>
+</body>
+</html>

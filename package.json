@@ -1,0 +1,13 @@
+{
+  "name": "tmail-app",
+  "version": "1.0.0",
+  "description": "Demo temp-mail server (native Node.js, tanpa dependency eksternal)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
